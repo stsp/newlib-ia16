@@ -111,7 +111,7 @@
 
 /* Alignment of allocated block */
 #define MALLOC_ALIGN (8U)
-#define CHUNK_ALIGN (sizeof(void*))
+#define CHUNK_ALIGN (MAX(sizeof(void*), sizeof(long)))
 #define MALLOC_PADDING ((MAX(MALLOC_ALIGN, CHUNK_ALIGN)) - CHUNK_ALIGN)
 
 /* as well as the minimal allocation size
@@ -315,7 +315,7 @@ void * nano_malloc(RARG malloc_size_t s)
 
     if (offset)
     {
-        *(int *)((char *)r + offset) = -offset;
+        ((chunk *)((char *)r + offset))->size = -offset;
     }
 
     assert(align_ptr + size <= (char *)r + alloc_size);
@@ -587,8 +587,8 @@ void * nano_memalign(RARG size_t align, size_t s)
         {
             /* Padding is used. Need to set a jump offset for aligned pointer
             * to get back to chunk head */
-            assert(offset >= sizeof(int));
-            *(int *)((char *)chunk_p + offset) = -offset;
+            assert(offset >= sizeof(long));
+            ((chunk *)((char *)chunk_p + offset))->size = -offset;
         }
     }
 
