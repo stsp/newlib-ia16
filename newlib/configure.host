@@ -704,6 +704,7 @@ case "${host}" in
 	;;
   ia16-*-*)
 	syscall_dir=syscalls
+	newlib_cflags="${newlib_cflags} -D_COMPILING_NEWLIB"
 	;;
   iq2000*)
 	syscall_dir=syscalls
