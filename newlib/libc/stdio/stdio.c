@@ -144,10 +144,7 @@ _DEFUN(__stextmode, (fd),
   extern int _cygwin_istext_for_stdio (int);
   return _cygwin_istext_for_stdio (fd);
 #elif defined (__ia16__)
-  struct stat buf;
-  if (fstat(fd, &buf) != 0)
-    return 0;
-  return S_ISCHR(buf.st_mode);
+  return isatty (fd);
 #else
   return 0;
 #endif
