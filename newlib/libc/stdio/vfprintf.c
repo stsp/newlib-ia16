@@ -196,6 +196,7 @@ static char *rcsid = "$Id$";
    the INTEGER_ONLY versions here. */
 #ifdef STRING_ONLY
 #ifdef INTEGER_ONLY
+#ifdef HELPER_ONLY
 #ifndef _FVWRITE_IN_STREAMIO
 int
 _DEFUN(__ssputs_r, (ptr, fp, buf, len),
@@ -357,15 +358,17 @@ err:
   uio->uio_iovcnt = 0;
   return EOF;
 }
-#else /* !INTEGER_ONLY */
+#else /* !HELPER_ONLY */
 #ifndef _FVWRITE_IN_STREAMIO
 int __ssputs_r (struct _reent *, FILE *, _CONST char *, size_t);
 #endif
 int __ssprint_r (struct _reent *, FILE *, register struct __suio *);
+#endif /* !HELPER_ONLY */
 #endif /* !INTEGER_ONLY */
 
 #else /* !STRING_ONLY */
 #ifdef INTEGER_ONLY
+#ifdef HELPER_ONLY
 
 #ifndef _FVWRITE_IN_STREAMIO
 int
@@ -440,11 +443,12 @@ out:
 	uio->uio_iovcnt = 0;
 	return (err);
 }
-#else /* !INTEGER_ONLY */
+#else /* !HELPER_ONLY */
 #ifndef _FVWRITE_IN_STREAMIO
 int __sfputs_r (struct _reent *, FILE *, _CONST char *buf, size_t);
 #endif
 int __sprint_r (struct _reent *, FILE *, register struct __suio *);
+#endif /* !HELPER_ONLY */
 #endif /* !INTEGER_ONLY */
 
 #ifdef _UNBUF_STREAM_OPT
@@ -646,6 +650,7 @@ _EXFUN(get_arg, (struct _reent *data, int n, char *fmt,
 
 int _EXFUN(_VFPRINTF_R, (struct _reent *, FILE *, _CONST char *, va_list));
 
+#ifndef HELPER_ONLY
 #ifndef STRING_ONLY
 int
 _DEFUN(VFPRINTF, (fp, fmt0, ap),
@@ -2353,3 +2358,4 @@ _DEFUN(get_arg, (data, n, fmt, ap, numargs_p, args, arg_type, last_fmt),
   return &args[n];
 }
 #endif /* !_NO_POS_ARGS */
+#endif /* !HELPER_ONLY */
