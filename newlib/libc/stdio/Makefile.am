@@ -283,10 +283,10 @@ $(lpfx)svfiprintf.$(oext): vfprintf.c
 	$(LIB_COMPILE) -fshort-enums -DINTEGER_ONLY -DSTRING_ONLY -c $(srcdir)/vfprintf.c -o $@
 
 $(lpfx)sprintr.$(oext): vfprintf.c
-	$(LIB_COMPILE) -fshort-enums -DINTEGER_ONLY -DHELPER_ONLY -c $(srcdir)/vfprintf.c -o $@
+	$(LIB_COMPILE) -fshort-enums -DHELPER_ONLY -c $(srcdir)/vfprintf.c -o $@
 
 $(lpfx)ssprintr.$(oext): vfprintf.c
-	$(LIB_COMPILE) -fshort-enums -DINTEGER_ONLY -DSTRING_ONLY -DHELPER_ONLY -c $(srcdir)/vfprintf.c -o $@
+	$(LIB_COMPILE) -fshort-enums -DHELPER_ONLY -DSTRING_ONLY -c $(srcdir)/vfprintf.c -o $@
 
 $(lpfx)vfwprintf.$(oext): vfwprintf.c
 	$(LIB_COMPILE) -fshort-enums -c $(srcdir)/vfwprintf.c -o $@
