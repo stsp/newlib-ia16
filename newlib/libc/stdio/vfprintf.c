@@ -444,7 +444,6 @@ out:
 int __sfputs_r (struct _reent *, FILE *, _CONST char *buf, size_t);
 #endif
 int __sprint_r (struct _reent *, FILE *, register struct __suio *);
-#endif /* !HELPER_ONLY */
 
 #ifdef _UNBUF_STREAM_OPT
 /*
@@ -493,8 +492,10 @@ _DEFUN(__sbprintf, (rptr, fp, fmt, ap),
 	return (ret);
 }
 #endif /* _UNBUF_STREAM_OPT */
+#endif /* !HELPER_ONLY */
 #endif /* !STRING_ONLY */
 
+#ifndef HELPER_ONLY
 
 #if defined (FLOATING_POINT) || defined (_WANT_IO_C99_FORMATS)
 # include <locale.h>
@@ -645,7 +646,6 @@ _EXFUN(get_arg, (struct _reent *data, int n, char *fmt,
 
 int _EXFUN(_VFPRINTF_R, (struct _reent *, FILE *, _CONST char *, va_list));
 
-#ifndef HELPER_ONLY
 #ifndef STRING_ONLY
 int
 _DEFUN(VFPRINTF, (fp, fmt0, ap),
