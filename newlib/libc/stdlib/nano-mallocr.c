@@ -252,11 +252,11 @@ static void* sbrk_aligned(RARG malloc_size_t s)
   */
 void * nano_malloc(RARG malloc_size_t s)
 {
-    chunk *p, *r;
+    chunk *p, *q, *r;
     char * ptr, * align_ptr;
     int offset;
 
-    malloc_size_t alloc_size;
+    malloc_size_t alloc_size, rem;
 
     alloc_size = ALIGN_TO(s, CHUNK_ALIGN); /* size of aligned data load */
     alloc_size += MALLOC_PADDING; /* padding */
@@ -272,11 +272,11 @@ void * nano_malloc(RARG malloc_size_t s)
     MALLOC_LOCK;
 
     p = free_list;
+    q = p;
     r = p;
 
     while (r)
     {
-        int rem = r->size - alloc_size;
 #ifdef MALLOC_CHECK_CORRUPT_HEAP
 #define NANO_MALLOC_ERR(what) NANO_MALLOC_ERR_2(nano_malloc, what)
 #define NANO_MALLOC_ERR_2(who, what) NANO_MALLOC_ERR_3(who, what)
@@ -288,31 +288,11 @@ void * nano_malloc(RARG malloc_size_t s)
             abort();
         }
 #endif
-        if (rem >= 0)
+        if (r->size >= alloc_size)
         {
-            if (rem >= MALLOC_MINCHUNK)
-            {
-                /* Find a chunk that much larger than required size, break
-                * it into two chunks and return the second one */
-                r->size = rem;
-                r = (chunk *)((char *)r + rem);
-                r->size = alloc_size;
-            }
-            /* Find a chunk that is exactly the size or slightly bigger
-             * than requested size, just return this chunk */
-            else if (p == r)
-            {
-                /* Now it implies p==r==free_list. Move the free_list
-                 * to next chunk */
-                free_list = r->next;
-            }
-            else
-            {
-                /* Normal case. Remove it from free_list */
-                p->next = r->next;
-            }
             break;
         }
+        q=p;
         p=r;
         r=r->next;
     }
@@ -320,7 +300,14 @@ void * nano_malloc(RARG malloc_size_t s)
     /* Failed to find a appropriate chunk. Ask for more memory */
     if (r == NULL)
     {
-        r = sbrk_aligned(RCALL alloc_size);
+        /* check if last free block p can be extended */
+        char *sbrk_now = _SBRK_R(RCALL 0);
+        malloc_size_t adjust = 0;
+        if (p && (char *)p + p->size == sbrk_now)
+        {
+            adjust = p->size;
+        }
+        r = sbrk_aligned(RCALL alloc_size - adjust);
 
         /* sbrk returns -1 if fail to allocate */
         if (r == (void *)-1)
@@ -329,8 +316,43 @@ void * nano_malloc(RARG malloc_size_t s)
             MALLOC_UNLOCK;
             return NULL;
         }
+        if (adjust)
+        {
+            /* extended chunk at p, so need to shift back in the list */
+            r = p;
+            p = q;
+        }
+        /* modify or create new free chunk that is claimed below */
         r->size = alloc_size;
+        r->next = NULL;
     }
+
+    /* Now it implies r->size >= alloc_size */
+    rem = r->size - alloc_size;
+    if (rem >= MALLOC_MINCHUNK)
+    {
+        /* Find a chunk that much larger than required size, break
+         * it into two chunks and return the first one */
+        chunk *rem_r = (chunk *)((char *)r + alloc_size);
+        rem_r->size = rem;
+        rem_r->next = r->next;
+        r->size = alloc_size;
+        r->next = rem_r;
+    }
+    /* Find a chunk that is exactly the size or slightly bigger
+     * than requested size, just return this chunk */
+    if (p == r)
+    {
+        /* Now it implies p==r==free_list. Move the free_list
+         * to next chunk */
+        free_list = r->next;
+    }
+    else
+    {
+        /* Normal case. Remove it from free_list */
+        p->next = r->next;
+    }
+
     MALLOC_UNLOCK;
 
     ptr = (char *)r + CHUNK_OFFSET;
