@@ -33,13 +33,13 @@
 #ifdef _ICONV_ENABLED
 
 char *good_names[] = {
-#ifdef _ICONV_CONVERTER_ISO_8859_5
+#ifdef _ICONV_FROM_ENCODING_ISO_8859_5
 "iso_8859_5", "iso-8859-5", "iso-8859_5", "IsO-8859_5"
-#elif defined _ICONV_CONVERTER_US_ASCII
+#elif defined _ICONV_FROM_ENCODING_US_ASCII
 "us_ascii", "US_ASCII", "us-ASCII", "US-ASCII"
-#elif defined _ICONV_CONVERTER_EUC_JP
+#elif defined _ICONV_FROM_ENCODING_EUC_JP
 "euc-jp", "EUC_JP", "euc-JP", "EUC-JP" 
-#elif defined _ICONV_CONVERTER_UTF_8
+#elif defined _ICONV_FROM_ENCODING_UTF_8
 "utf_8", "UTF_8", "uTf-8", "UTF-8"
 #else
 #endif
@@ -81,7 +81,8 @@ int main(int argc, char **argv)
     
     for (i = 0; i < sizeof(bad_names)/sizeof(char *); i++)
     {
-        printf("Trying iconv(%s, \"%s\")", good_names[0], bad_names[i]);
+        printf("Trying iconv(%s, \"%s\")", good_names[0],
+               bad_names[i] ? bad_names[i] : "(null)");
         fflush(stdout);
 
         cd = iconv_open(good_names[0], bad_names[i]);
