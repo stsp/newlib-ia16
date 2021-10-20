@@ -705,6 +705,7 @@ case "${host}" in
 	;;
   ia16-*-*)
 	syscall_dir=syscalls
+	default_newlib_io_long_long="yes"
 	newlib_cflags="${newlib_cflags} -D_COMPILING_NEWLIB"
 	;;
   iq2000*)
