@@ -67,17 +67,15 @@ DOS_COMMON_OBJS = dos-access.o dos-chdir.o dos-chmod.o dos-closer.o \
 		  dos-readr.o dos-realpath.o dos-renamer.o dos-rmdir.o \
 		  dos-sbrkr.o dos-statr.o dos-timesr.o dos-uname.o \
 		  dos-uname-impl.o dos-unlinkr.o dos-usleep.o dos-writer.o
-PROTECTED_MODE_P = $(filter -mprotected-mode -mdpmiable -melks%, \
+PROTECTED_MODE_P = $(filter -mprotected-mode -mdpmi% -mdosx -melks%, \
 			    $(CC) $(CFLAGS) $(MULTILIB))
 CMODEL_MEDIUM_P = $(filter -mcmodel=medium,$(CC) $(CFLAGS) $(MULTILIB))
 CMODEL_NOT_MEDIUM_P = $(if $(CMODEL_MEDIUM_P),,!)
 DOS_COMMON_OBJS += $(if $(PROTECTED_MODE_P), \
-			$(if $(CMODEL_NOT_MEDIUM_P), \
-			     dpm-hosted.o dpm-r-dos.o dpm-r-func.o \
-			     dpm-abort.o))
+			$(if $(CMODEL_NOT_MEDIUM_P),dx-abort.o))
 
 DOS_TINY_OBJS	= $(DOS_COMMON_OBJS)
-DOS_TINY_OBJS	+= $(if $(PROTECTED_MODE_P),dpm-mtds.o,dos-mtabort.o) \
+DOS_TINY_OBJS	+= $(if $(PROTECTED_MODE_P),,dos-mtabort.o) \
 		   dos-mti0.o dos-mti1.o dos-mtv1.o
 DOS_TINY_CFLAGS	= -mseparate-code-segment -g -Os
 DOS_TINY_ASFLAGS =
@@ -88,8 +86,7 @@ DOS_TINY_CRT0	= dos-t-c0.o
 DOS_TSR_TINY_CRT0 = dtr-t-c0.o
 
 DOS_SMALL_OBJS	= $(DOS_COMMON_OBJS)
-DOS_SMALL_OBJS	+= $(if $(PROTECTED_MODE_P),dpm-mscs.o dpm-msds.o, \
-			dos-msmmabort.o) \
+DOS_SMALL_OBJS	+= $(if $(PROTECTED_MODE_P),,dos-msmmabort.o) \
 		   dos-mxi0.o dos-mxi1.o dos-mxv1.o
 DOS_SMALL_CFLAGS = $(DOS_TINY_CFLAGS)
 DOS_SMALL_ASFLAGS = $(DOS_TINY_ASFLAGS)
@@ -106,11 +103,8 @@ DOS_MEDIUM_SCRIPTS = dos-mm.ld dos-mms.ld dos-mml.ld dos-mmsl.ld
 DOS_MEDIUM_BSP	= libdos-m.a
 DOS_MEDIUM_CRT0	= dos-m-c0.o
 
-DPMIABLE_TINY_SCRIPTS = dpm-mt.ld dpm-mts.ld dpm-mtl.ld dpm-mtsl.ld
-DPMIABLE_TINY_CRT0 = dpm-t-c0.o
-
-DPMIABLE_SMALL_SCRIPTS = dpm-ms.ld dpm-mss.ld dpm-msl.ld dpm-mssl.ld
-DPMIABLE_SMALL_CRT0 = dpm-s-c0.o
+DOSX_SMALL_SCRIPTS = dx-ms.ld dx-mss.ld dx-msl.ld dx-mssl.ld
+DOSX_SMALL_CRT0 = dx-s-c0.o
 
 # This is a hack to allow us to build Newlib's nano formatted I/O functions
 # as a separate "board support package", so that we do not have to build the
@@ -135,11 +129,13 @@ ISCANF_OBJS	= i-sscanf.o i-fscanf.o i-scanf.o i-vscanf.o i-vfscanf.o \
 		  i-vsscanf.o i-sscanfr.o i-fscanfr.o i-scanfr.o i-vscanfr.o \
 		  i-vfscanfr.o i-vsscanfr.o
 ISCANF_BSP	= iscnf-fw.a
-HELPER_SCRIPTS	= libastdio.a libanstdio.a libdosv1.a libck086.a libck186.a
+HELPER_SCRIPTS	= libastdio.a libanstdio.a
+
+# Various other hacks.  -- tkchia 20220213
+HELPER_SCRIPTS	+= libdosv1.a libck086.a libck186.a elf2dosx
 
 ALL_SCRIPTS	= $(ELKS_SCRIPTS) $(DOS_TINY_SCRIPTS) $(DOS_SMALL_SCRIPTS) \
-		  $(DOS_MEDIUM_SCRIPTS) $(DPMIABLE_TINY_SCRIPTS) \
-		  $(DPMIABLE_SMALL_SCRIPTS) $(HELPER_SCRIPTS)
+		  $(DOS_MEDIUM_SCRIPTS) $(DOSX_SMALL_SCRIPTS) $(HELPER_SCRIPTS)
 ALL_BSP		= $(ELKS_BSP) $(DOS_TINY_BSP) $(DOS_SMALL_BSP) \
 		  $(DOS_MEDIUM_BSP) \
 		  $(NANO_STDIO_BSP) $(IPRINTF_BSP) $(ISCANF_BSP)
@@ -168,13 +164,13 @@ CRT0		= $(if $(CMODEL_MEDIUM_P), \
 # Need to augment the definition from host_makefile_frag above.
 INCLUDES += -I$(srcdir) -I. -I$(srcdir)/.. -I../libnosys
 
-INSTALL_FILES = \
+INSTALL_DATA_FILES = \
   $(BSP) $(CRT0) $(NANO_STDIO_BSP) $(IPRINTF_BSP) $(ISCANF_BSP) \
   $(SCRIPTS) $(HELPER_SCRIPTS)
-INSTALL_FILES += $(if $(PROTECTED_MODE_P), \
-		      $(if $(CMODEL_NOT_MEDIUM_P), \
-			   $(DPMIABLE_TINY_CRT0) $(DPMIABLE_SMALL_CRT0) \
-			   $(DPMIABLE_TINY_SCRIPTS) $(DPMIABLE_SMALL_SCRIPTS)))
+INSTALL_DATA_FILES += $(if $(PROTECTED_MODE_P), \
+			   $(if $(CMODEL_NOT_MEDIUM_P), \
+				$(DOSX_SMALL_CRT0) $(DOSX_SMALL_SCRIPTS)))
+INSTALL_PROGRAM_FILES = elf2dosx
 # Building Newlib for the ELKS target is currently disabled.  To properly
 # build Newlib/ELKS, we will probably need to at least add Newlib/ELKS as a
 # multilib combination under GCC, _and_ fix newlib/libc/machine/ia16/sys/
@@ -182,16 +178,16 @@ INSTALL_FILES += $(if $(PROTECTED_MODE_P), \
 # syscall routines to work with REENTRANT_SYSCALLS_PROVIDED.  TODO.
 #	-- tkchia 20211005
 #
-# INSTALL_FILES += $(if $(PROTECTED_MODE_P), \
-# 		      $(if $(CMODEL_NOT_MEDIUM_P), \
-# 			   $(ELKS_BSP) $(ELKS_CRT0) $(ELKS_SCRIPTS)))
+# INSTALL_DATA_FILES += $(if $(PROTECTED_MODE_P), \
+#			     $(if $(CMODEL_NOT_MEDIUM_P), \
+#				  $(ELKS_BSP) $(ELKS_CRT0) $(ELKS_SCRIPTS)))
 
 #
 # build a test program for each target board. Just trying to get
 # it to link is a good test, so we ignore all the errors for now.
 #
 # all: ${MON_CRT0} ${MON_BSP}
-all: $(INSTALL_FILES) libnosys.a
+all: $(INSTALL_DATA_FILES) $(INSTALL_PROGRAM_FILES) libnosys.a
 #
 # Here's where we build the board support packages for each target.
 #
@@ -224,10 +220,8 @@ $(objroot)/newlib/$(DOS_MEDIUM_CRT0):
 	ln -s ../libgloss/ia16/$(DOS_MEDIUM_CRT0) $(objroot)/newlib
 $(objroot)/newlib/$(DOS_TSR_TINY_CRT0):
 	ln -s ../libgloss/ia16/$(DOS_TSR_TINY_CRT0) $(objroot)/newlib
-$(objroot)/newlib/$(DPMIABLE_TINY_CRT0):
-	ln -s ../libgloss/ia16/$(DPMIABLE_TINY_CRT0) $(objroot)/newlib
-$(objroot)/newlib/$(DPMIABLE_SMALL_CRT0):
-	ln -s ../libgloss/ia16/$(DPMIABLE_SMALL_CRT0) $(objroot)/newlib
+$(objroot)/newlib/$(DOSX_SMALL_CRT0):
+	ln -s ../libgloss/ia16/$(DOSX_SMALL_CRT0) $(objroot)/newlib
 $(objroot)/newlib/$(ELKS_BSP):
 	ln -s ../libgloss/ia16/$(ELKS_BSP) $(objroot)/newlib
 $(objroot)/newlib/$(ELKS_CRT0):
@@ -296,40 +290,36 @@ $(ELKS_BSP) : $(ELKS_SYS_OBJS) $(ELKS_LIB_OBJS)
 	$(AR) rcs $@ $+
 
 $(DOS_TINY_CRT0) : dos-models-crt0.S
-	$(CC) $(CFLAGS_FOR_TARGET) -DTINY -USMALL -UMEDIUM -UTSR -UDPMIABLE \
+	$(CC) $(CFLAGS_FOR_TARGET) -DTINY -USMALL -UMEDIUM -UTSR -UDOSX \
 	  $(ASFLAGS_FOR_TARGET) $(ASFLAGS) -c $(CFLAGS) $< -o $@
 
 $(DOS_SMALL_CRT0) : dos-models-crt0.S
-	$(CC) $(CFLAGS_FOR_TARGET) -UTINY -DSMALL -UMEDIUM -UTSR -UDPMIABLE \
+	$(CC) $(CFLAGS_FOR_TARGET) -UTINY -DSMALL -UMEDIUM -UTSR -UDOSX \
 	  $(ASFLAGS_FOR_TARGET) $(ASFLAGS) -c $(CFLAGS) $< -o $@
 
 $(DOS_MEDIUM_CRT0) : dos-models-crt0.S
-	$(CC) $(CFLAGS_FOR_TARGET) -UTINY -USMALL -DMEDIUM -UTSR -UDPMIABLE \
+	$(CC) $(CFLAGS_FOR_TARGET) -UTINY -USMALL -DMEDIUM -UTSR -UDOSX \
 	  $(ASFLAGS_FOR_TARGET) $(ASFLAGS) -c $(CFLAGS) $< -o $@
 
 $(DOS_TSR_TINY_CRT0) : dos-models-crt0.S
-	$(CC) $(CFLAGS_FOR_TARGET) -DTINY -USMALL -UMEDIUM -DTSR -UDPMIABLE \
+	$(CC) $(CFLAGS_FOR_TARGET) -DTINY -USMALL -UMEDIUM -DTSR -UDOSX \
 	  $(ASFLAGS_FOR_TARGET) $(ASFLAGS) -c $(CFLAGS) $< -o $@
 
-$(DPMIABLE_TINY_CRT0) : dos-models-crt0.S
-	$(CC) $(CFLAGS_FOR_TARGET) -DTINY -USMALL -UTSR -DDPMIABLE \
+$(DOSX_SMALL_CRT0) : dos-models-crt0.S
+	$(CC) $(CFLAGS_FOR_TARGET) -UTINY -DSMALL -UTSR -DDOSX \
 	  $(ASFLAGS_FOR_TARGET) $(ASFLAGS) -c $(CFLAGS) $< -o $@
 
-$(DPMIABLE_SMALL_CRT0) : dos-models-crt0.S
-	$(CC) $(CFLAGS_FOR_TARGET) -UTINY -DSMALL -UTSR -DDPMIABLE \
-	  $(ASFLAGS_FOR_TARGET) $(ASFLAGS) -c $(CFLAGS) $< -o $@
-
-dos-chdir.o: dos-chdir.S call-cvt.h pmode.h
+dos-chdir.o: dos-chdir.S call-cvt.h
 dos-closer.o: dos-closer.S call-cvt.h
-dos-getcwd.o: dos-getcwd.S call-cvt.h pmode.h
+dos-getcwd.o: dos-getcwd.S call-cvt.h
 dos-isattyr.o: dos-isattyr.S call-cvt.h
 dos-lseekr.o: dos-lseekr.S call-cvt.h
-dos-mkdir.o: dos-mkdir.S call-cvt.h pmode.h
-dos-readr.o: dos-readr.S call-cvt.h pmode.h
-dos-renamer.o: dos-renamer.S call-cvt.h pmode.h
-dos-rmdir.o: dos-rmdir.S call-cvt.h pmode.h
-dos-unlinkr.o: dos-unlinkr.S call-cvt.h pmode.h
-dos-writer.o: dos-writer.S call-cvt.h pmode.h
+dos-mkdir.o: dos-mkdir.S call-cvt.h
+dos-readr.o: dos-readr.S call-cvt.h
+dos-renamer.o: dos-renamer.S call-cvt.h
+dos-rmdir.o: dos-rmdir.S call-cvt.h
+dos-unlinkr.o: dos-unlinkr.S call-cvt.h
+dos-writer.o: dos-writer.S call-cvt.h
 
 # (!) dos-timesr.S uses the division operator.
 dos-timesr.o: override CFLAGS += -Wa,--divide
@@ -485,29 +475,29 @@ dtr-mtl.ld: dtr-mt.ld.in
 dtr-mtsl.ld: dtr-mt.ld.in
 	$(GEN_LD_SCRIPT) >$@
 
-dpm-mt.ld: dos-mt.ld.in
-	$(GEN_LD_SCRIPT) -mdpmiable -nostdlib >$@
+dx-mt.ld: dx-mt.ld.in
+	$(GEN_LD_SCRIPT) -nostdlib >$@
 
-dpm-mts.ld: dos-mt.ld.in
-	$(GEN_LD_SCRIPT) -mdpmiable -nodefaultlibs >$@
+dx-mts.ld: dx-mt.ld.in
+	$(GEN_LD_SCRIPT) -nodefaultlibs >$@
 
-dpm-mtl.ld: dos-mt.ld.in
-	$(GEN_LD_SCRIPT) -mdpmiable -nostartfiles >$@
+dx-mtl.ld: dx-mt.ld.in
+	$(GEN_LD_SCRIPT) -nostartfiles >$@
 
-dpm-mtsl.ld: dos-mt.ld.in
-	$(GEN_LD_SCRIPT) -mdpmiable >$@
+dx-mtsl.ld: dx-mt.ld.in
+	$(GEN_LD_SCRIPT) >$@
 
-dpm-ms.ld: dos-mx.ld.in
-	$(GEN_LD_SCRIPT) -mdpmiable -nostdlib >$@
+dx-ms.ld: dx-ms.ld.in
+	$(GEN_LD_SCRIPT) -nostdlib >$@
 
-dpm-mss.ld: dos-mx.ld.in
-	$(GEN_LD_SCRIPT) -mdpmiable -nodefaultlibs >$@
+dx-mss.ld: dx-ms.ld.in
+	$(GEN_LD_SCRIPT) -nodefaultlibs >$@
 
-dpm-msl.ld: dos-mx.ld.in
-	$(GEN_LD_SCRIPT) -mdpmiable -nostartfiles >$@
+dx-msl.ld: dx-ms.ld.in
+	$(GEN_LD_SCRIPT) -nostartfiles >$@
 
-dpm-mssl.ld: dos-mx.ld.in
-	$(GEN_LD_SCRIPT) -mdpmiable >$@
+dx-mssl.ld: dx-ms.ld.in
+	$(GEN_LD_SCRIPT) >$@
 
 elk-mt.ld: elk-mt.ld.in
 	$(GEN_LD_SCRIPT) -nostdlib >$@
@@ -543,11 +533,18 @@ distclean maintainer-clean realclean: clean
 .PHONY: install info install-info clean-info
 install: 
 	$(mkinstalldirs) $(DESTDIR)${tooldir}/lib${MULTISUBDIR}
-	set -e; for x in ${INSTALL_FILES}; do\
+	set -e; for x in ${INSTALL_DATA_FILES}; do\
 	  if [ -f $$x ]; then \
 	    ${INSTALL_DATA} $$x $(DESTDIR)${tooldir}/lib${MULTISUBDIR}/$$x; \
 	  else \
 	    ${INSTALL_DATA} $(srcdir)/$$x $(DESTDIR)${tooldir}/lib${MULTISUBDIR}/$$x; \
+	  fi; \
+	done
+	set -e; for x in ${INSTALL_PROGRAM_FILES}; do\
+	  if [ -f $$x ]; then \
+	    ${INSTALL_PROGRAM} $$x $(DESTDIR)${tooldir}/bin/$$x; \
+	  else \
+	    ${INSTALL_PROGRAM} $(srcdir)/$$x $(DESTDIR)${tooldir}/bin/$$x; \
 	  fi; \
 	done
 
