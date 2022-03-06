@@ -429,8 +429,14 @@ _DEFUN(__sfputs_r, (ptr, fp, buf, len),
     {
       for (i = 0; i < len; i++)
 	{
+	  int c = (int)buf[i];
 	  /* Call __sfputc_r to skip _fputc_r.  */
-	  if (__sfputc_r (ptr, (int)buf[i], fp) == EOF)
+#ifdef __SCLE
+	  if (c == '\n' && (fp->_flags & __SCLE))
+	    if (__sfputc_r (ptr, '\r', fp) == EOF)
+	      return -1;
+#endif
+	  if (__sfputc_r (ptr, c, fp) == EOF)
 	    return -1;
 	}
     }
