@@ -5,7 +5,7 @@
 
 int
 _DEFUN (kill, (pid, sig),
-     int pid _AND
+     pid_t pid _AND
      int sig)
 {
   return _kill_r (_REENT, pid, sig);

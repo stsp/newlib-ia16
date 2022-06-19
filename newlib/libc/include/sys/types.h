@@ -177,6 +177,8 @@ typedef __gid_t gid_t;
 
 #if defined(__XMK__)
 typedef signed char pid_t;
+#elif defined(__ia16__)
+#include <sys/_pid_t.h>
 #else
 typedef int pid_t;
 #endif
