@@ -175,13 +175,7 @@ typedef __uid_t uid_t;
 typedef __gid_t gid_t;
 #endif
 
-#if defined(__XMK__)
-typedef signed char pid_t;
-#elif defined(__ia16__)
-#include <sys/_pid_t.h>
-#else
-typedef int pid_t;
-#endif
+typedef __pid_t pid_t;
 
 #if defined(__rtems__)
 typedef _mode_t mode_t;

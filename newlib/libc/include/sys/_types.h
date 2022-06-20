@@ -27,6 +27,16 @@ typedef unsigned short __uid_t;
 typedef unsigned short __gid_t;
 #endif
 
+#ifndef __pid_t_defined
+#if defined(__XMK__)
+typedef signed char __pid_t;
+#elif defined(__ia16__)
+#include <sys/_pid_t.h>
+#else
+typedef int __pid_t;
+#endif
+#endif
+
 #ifndef __off64_t_defined
 __extension__ typedef long long _off64_t;
 #endif
