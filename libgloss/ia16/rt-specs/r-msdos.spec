@@ -108,7 +108,7 @@ bogus output}\
 %{mdosx:\
     -l:dx-%(cmodel_lc_a);\
   :\
-    %{mmsdos-handle-v1:-ldosv1} \
+    %{mmsdos-handle-v1:%{mdosx:;:-ldosv1}} \
     %{mhandle-non-i286:\
         %{march=i80286|march=i286:-lck186};\
       mhandle-non-i186:\

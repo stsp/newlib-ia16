@@ -1,9 +1,11 @@
-/* Startup code for
-     * a "tiny" model MS-DOS .com file with combined text and data segment,
-     * a "small" model MS-DOS .exe file with one text segment and one separate
-       data segment, or
-     * a "medium" model MS-DOS .exe file with multiple text segments and one
-       data segment.  */
+/*
+ * Startup code for
+ *   * a "tiny" model MS-DOS .com file with combined text and data segment,
+ *   * a "small" model MS-DOS .exe file with one text segment and one separate
+ *     data segment, or
+ *   * a "medium" model MS-DOS .exe file with multiple text segments and one
+ *     data segment.
+ */
 
 #if !defined TINY && !defined SMALL && !defined MEDIUM
 # error "no memory model defined -- please use -DTINY, -DSMALL or -DMEDIUM"
@@ -19,6 +21,12 @@
 
 #ifdef DOSX
 	.arch i286
+/*
+ * Assume MS-DOS 3 or above if running under a DOS extender.  The CauseWay
+ * DOS extender will not even start this code, if it finds itself running
+ * under MS-DOS < 3.01.
+ */
+# define DOS3P
 #else
 	.arch i8086
 #endif
@@ -41,6 +49,7 @@ _start:
 	.section .startupC, "ax"
 
 	# Get the MS-DOS version number & see if it is 2 or above.
+#ifndef DOS3P
 	movb	$0x30,	%ah
 	int	$0x21
 	subb	$2,	%al
@@ -51,6 +60,7 @@ _start:
 	# At this point, the flags should contain the result of comparing the
 	# DOS major version number with 2.  dos-mtv1.S & dos-mxv1.S make use
 	# of this.
+#endif
 
 	.section .startupD, "ax"
 
@@ -173,8 +183,10 @@ __stext_nokeep_to_copy:
 	incw	%cx
 	incw	%cx
 	jne	.Lfind_env_end
+#ifndef DOS3P
 	testw	%bp,	%bp
 	jz	.Lno_argv0
+#endif
 	scasw
 	decw	%cx
 	repne	scasb
@@ -210,13 +222,17 @@ __stext_nokeep_to_copy:
 	popw	%cx		# don't include the final empty string
 	incw	%di		# advance di to progname (if there is a
 	incw	%di		# progname)
+#ifndef DOS3P
 	testw	%bp,	%bp
+#endif
 	movw	%sp,	%bp	# bp is envp
 	pushw	%ax		# argv[argc] = NULL
+#ifndef DOS3P
 	jnz	.Largv0
 	movw	%sp,	%di	# if no progname, use the null byte in the
 				# null pointer we just pushed as argv[0]
 .Largv0:
+#endif
 	pushw	%di		# argv[0] will be first after reversal
 	movw	%sp,	%dx	# dx points to last item of argv
 
