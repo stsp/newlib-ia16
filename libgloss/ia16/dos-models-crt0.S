@@ -173,10 +173,16 @@ __stext_nokeep_to_copy:
 
 	.section .startupE, "ax"
 
-	# Find length of environment + progname
-	movw	0x2c,	%es
+	# Handle case where environment segment is null --- this may happen
+	# for certain versions of MS-DOS & clones if program is started as
+	# first process (SHELL= or command.com)
 	xorw	%di,	%di
 	xorw	%ax,	%ax
+	movw	0x2c(%di), %cx
+	jcxz	.Lnull_env
+
+	# Find length of environment + progname
+	movw	%cx,	%es
 .Lfind_env_end:
 	movw	$-1,	%cx
 	repne	scasb
@@ -210,6 +216,10 @@ __stext_nokeep_to_copy:
 	pushw	%es
 	popw	%ds
 #endif
+	.byte	0x3d		# .. eat up next two instructions in normal
+.Lnull_env:			#  : case (non-null environment segment)
+	push	%ax		#  :
+	push	%ax		# .:
 	movw	%sp,	%di
 	pushw	%ax		# envp ends with null pointer
 .Lpush_env_pointers:
