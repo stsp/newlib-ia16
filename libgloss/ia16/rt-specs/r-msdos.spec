@@ -29,12 +29,13 @@
 %{mcmodel=medium:msl.ld;mcmodel=small:ssl.ld;:tsl.ld}
 
 *ia16_impl_rt_switches:
-%{mdosx} %{mmsdos-handle-v1} %{mnewlib-nano-stdio} %{mnewlib-autofloat-stdio} \
-%{mno-newlib-autofloat-stdio} %{mhandle-non-i186} %{mhandle-non-i286} \
-%{maout-heap=*}
+%{mdosx} %{mdosx32} %{mmsdos-handle-v1} %{mnewlib-nano-stdio} \
+%{mnewlib-autofloat-stdio} %{mno-newlib-autofloat-stdio} \
+%{mhandle-non-i186} %{mhandle-non-i286} %{maout-heap=*}
 
 *self_spec:
-%{mdosx:\
+%{mdosx32:-mdosx} \
+%{mdosx*:\
     %{mcmodel=medium:%emedium model not supported in DOS extender mode}\
     %{march=*:;:-march=i80286} \
     %{mno-segelf:;:-msegelf} \
@@ -44,7 +45,7 @@
 bogus output}\
  } \
 %{mcmodel=small|mcmodel=medium:\
-    %{!mdosx:\
+    %{mdosx*:;:\
 	%{!mno-segment-relocation-stuff:-msegment-relocation-stuff}\
      }\
  }
@@ -68,7 +69,7 @@ bogus output}\
 # script specification (%T...) to appear in %(link_gcc_c_sequence) if we are
 # linking in default libraries, but in %(link) if we are not (i.e.
 # -nostdlib or -nodefaultlibs).  An exception is the main linker script for
-# -mdosx, which will always appear in %(link).
+# -mdosx or -mdosx32, which will always appear in %(link).
 #
 # If default libraries are used, then we want them to appear at the end of
 # the ld command line, so %(link_gcc_c_sequence) is the right place to use.
@@ -78,7 +79,7 @@ bogus output}\
 # the linker script to ld.
 #
 # TODO: simplify the linker script arrangement in general to be like the
-# -mdosx case.
+# -mdosx or -mdosx32 case.
 #	-- tkchia
 *link:
 %{!T*:\
@@ -106,9 +107,10 @@ bogus output}\
     %{!mno-newlib-autofloat-stdio:-lastdio} -lfstdio\
  } \
 %{mdosx:\
+    %{mdosx32:-ldx32} \
     -l:dx-%(cmodel_lc_a);\
   :\
-    %{mmsdos-handle-v1:%{mdosx:;:-ldosv1}} \
+    %{mmsdos-handle-v1:-ldosv1} \
     %{mhandle-non-i286:\
         %{march=i80286|march=i286:-lck186};\
       mhandle-non-i186:\

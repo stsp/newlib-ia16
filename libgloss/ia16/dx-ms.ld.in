@@ -72,8 +72,12 @@ SECTIONS
 		 *   * bit 0: 16-bit interrupt stack frame
 		 *   * bit 7: use LDT, not GDT
 		 *   * bit 14: 16-bit default data size
+		 *   * bit 16: dual mode (can run under 16- or 32-bit DPMI)
 		 */
-		LONG (1 << 0 | 1 << 7 | 1 << 14)
+		PROVIDE_HIDDEN (__dosx_prefer_dpmi32 = 0);
+		PROVIDE_HIDDEN (__dosx_dual_mode = __dosx_prefer_dpmi32);
+		LONG ((! __dosx_prefer_dpmi32) << 0 | 1 << 7 | 1 << 14
+		      | __dosx_dual_mode << 16)
 		/* Automatic stack size if initial %esp == 0. */
 		LONG (0)
 		/* Number of automatic data segments + 1, or 0 if none. */

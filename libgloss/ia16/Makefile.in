@@ -170,7 +170,7 @@ HELPER_SCRIPTS	= libastdio.a libfstdio.a
 # some routines that are only present in EL/IX Level 3 & are relevant for
 # MS-DOS.  -- tkchia 20220529
 ELIX_3_OBJS	= putenv.o putenv_r.o setenv.o setenv_r.o
-HELPER_SCRIPTS	+= libdosv1.a libck086.a libck186.a
+HELPER_SCRIPTS	+= libdosv1.a libck086.a libck186.a libdx32.a
 HELPER_SCRIPTS_NONMULTI = rt-specs/r-msdos.spec
 
 ALL_BSP		= $(ELKS_BSP) $(DOS_TINY_BSP) $(DOS_SMALL_BSP) \
