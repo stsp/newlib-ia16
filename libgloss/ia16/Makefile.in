@@ -72,7 +72,7 @@ PROTECTED_MODE_P = $(filter -mprotected-mode -mdpmi% -mdosx -melks%, \
 CMODEL_MEDIUM_P = $(filter -mcmodel=medium,$(CC) $(CFLAGS) $(MULTILIB))
 CMODEL_NOT_MEDIUM_P = $(if $(CMODEL_MEDIUM_P),,!)
 DOS_COMMON_OBJS += $(if $(PROTECTED_MODE_P), \
-			dx-abort.o dx-tb.o dx-dbcs-weaks.o, \
+			dx-abort.o dx-tb.o dx-dbcs-weaks.o dx-dpmi16.o, \
 			dos-getpid.o dos-dbcs-weaks.o)
 DOS_COMMON_OBJS += $(ELIX_3_OBJS)
 

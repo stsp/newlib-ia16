@@ -1,7 +1,7 @@
 /*
  * Declarations for operation under a DOS extender.
  *
- * Copyright (c) 2019--2022 TK Chia
+ * Copyright (c) 2019--2023 TK Chia
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -44,6 +44,13 @@
 #define MK_FP(s, o) ((void __far *) ((unsigned long) (unsigned) (s) << 16 | \
 				     (unsigned) (o)))
 #endif
+#ifndef __IA16_CMODEL_IS_FAR_TEXT
+#define CALL_DPMI16_SHIM(opd) "callw *%" #opd
+#else
+#define CALL_DPMI16_SHIM(opd) "lcallw *%" #opd
+#endif
+#define DPMI16_SHIM __dosx_dpmi16_shim
+extern void (*__dosx_dpmi16_shim) (/* ... */);
 
 typedef struct __attribute__ ((__packed__))
   {
@@ -107,9 +114,10 @@ _DPMISimulateRealModeInterrupt (uint8_t __intr_no, uint8_t __flags,
 				rm_call_struct __far *__call_st)
 {
   int __res;
-  __asm volatile ("int {$}0x31; sbb{w} %0, %0"
+  __asm volatile (CALL_DPMI16_SHIM (1) "; sbb{w} %0, %0"
 		  : "=abcr" (__res)
-		  : "a" (0x0300U),
+		  : "m" (DPMI16_SHIM),
+		    "a" (0x0300U),
 		    "b" ((uint16_t) __flags << 8 | __intr_no),
 		    "c" (__words_to_copy),
 		    "e" (FP_SEG (__call_st)), "D" (FP_OFF (__call_st))
