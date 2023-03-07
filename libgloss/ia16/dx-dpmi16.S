@@ -44,12 +44,17 @@
 	RET_ (0)
 
 .Ldpmi16_386:
+	pushl	%edx
+	popw	%dx
+	movzwl	%dx,	%edx
 	pushl	%edi
 	popw	%di
 	movzwl	%di,	%edi
 	int	$0x31
 	pushw	%di
 	popl	%edi
+	pushw	%dx
+	popl	%edx
 	RET_ (0)
 
 	.section .data, "aw"

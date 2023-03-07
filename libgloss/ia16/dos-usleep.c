@@ -38,7 +38,9 @@ sleep_ticks (clock_t ticks)
 
   do
     {
+#ifndef __IA16_FEATURE_PROTECTED_MODE
       __asm volatile ("hlt");
+#endif
 
       now = times (&tms);
       if (now == -1)
