@@ -63,7 +63,7 @@ DOS_COMMON_OBJS = dos-access.o dos-chdir.o dos-chmod.o dos-closer.o \
 		  dos-dup.o dos-dup2.o dos-fstatr.o dos-getcwd.o \
 		  dos-getcwd-impl.o dos-gettimeofdayr.o dos-heaplen.o \
 		  dos-isattyr.o dos-lseekr.o dos-mkdir.o dos-mkdirr.o \
-		  dos-openr.o dos-psp.o \
+		  dos-near-data-segment.o dos-openr.o dos-psp.o \
 		  dos-readr.o dos-realpath.o dos-renamer.o dos-rmdir.o \
 		  dos-sbrkr.o dos-statr.o dos-timesr.o dos-uname.o \
 		  dos-uname-impl.o dos-unlinkr.o dos-usleep.o dos-writer.o

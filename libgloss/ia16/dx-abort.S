@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 TK Chia
+ * Copyright (c) 2019--2023 TK Chia
  *
  * The authors hereby grant permission to use, copy, modify, distribute,
  * and license this software and its documentation for any purpose, provided
@@ -20,15 +20,12 @@
 	.code16
 
 	.text
-	.balign	2
-0:
-	.hword	0
 	.global	abort
 abort:
 	pushfw
 	cli
 	pushw	%ds
-	movw	%cs:0b,	%ds
+	movw	%cs:__ia16_near_data_segment, %ds
 	popw	abort_stack-8
 	popw	abort_stack-2
 	movw	%sp,	abort_stack-4
@@ -48,27 +45,6 @@ abort:
 	cld
 	sti
 	call	__ia16_abort_impl
-
-.Lctor_abort:
-	/* Patch the text segment the hard way...  */
-	movw	$0x000a, %ax
-	movw	%cs,	%bx
-	int	$0x31
-	jc	9f
-	movw	%ax,	%ds
-	movw	%ss,	0b
-	xchgw	%ax,	%bx
-	pushw	%ss
-	popw	%ds
-	movw	$0x0001, %ax
-	int	$0x31
-9:
-	ret
-
-	.section .ctors.65535
-
-	.balign	2
-	.hword	.Lctor_abort
 
 	.bss
 	.skip	128
