@@ -200,9 +200,10 @@ cat <<'EPART2'
     .bss.startup (NOLOAD) : {
 		__sbss_nokeep = .;
 		*(.bss.startup) *(.bss.startup.*)
+		__ebss_startup_nokeep = .;
 	}
 
-    .bss.exit (NOLOAD) : {
+    .bss.exit ALIGN (__ebss_startup_nokeep, 2) (NOLOAD) : {
 		*(.bss.exit) *(.bss.exit.*)
 		__ebss_nokeep = .;
 	}
