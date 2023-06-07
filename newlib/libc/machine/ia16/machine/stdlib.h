@@ -4,6 +4,7 @@
 #ifndef __STRICT_ANSI__
 # ifdef __MSDOS__
 extern unsigned _psp;
+extern char **__argv;
 # endif	/* __MSDOS__ */
 #endif 	/* !__STRICT_ANSI__ */
 

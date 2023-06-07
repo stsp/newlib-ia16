@@ -60,6 +60,7 @@ SECTIONS
 		*(.startupD)
 		*(.msdos_initB) *(.msdos_initB.*)
 		*(.startupE)
+		*(.preinit) *(.preinit.*)
 		*(.init)
 		*(.startupF)
 		*(.exitA)

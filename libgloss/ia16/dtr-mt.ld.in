@@ -147,13 +147,14 @@ cat <<'EPART2'
 		*(.startupD)
 		*(.msdos_initB) *(.msdos_initB.*)
 		*(.startupE)
+		*(.preinit) *(.preinit.*)
 		*(.init)
 		*(.startupF)
 		*(.text.startup) *(.text.startup.*)
 	}
 	/*
-	 * Distance which the startup code to jump forward by, after we have
-	 * copied the code from the LMA to the VMA.
+	 * Distance which the startup code should jump forward by, after we
+	 * have copied the code from the LMA to the VMA.
 	 */
 	__text_nokeep_leap = __stext_nokeep - __stext_nokeep_load;
 

@@ -307,7 +307,6 @@ __stext_nokeep_to_copy:
 	decw	%bx
 	loop	.Ldo_reverse
 .Lno_reverse:
-	movw	%bp,	environ
 #ifndef __IA16_CALLCVT_REGPARMCALL
 	movw	%sp,	%ax
 	pushw	%bp		# envp
