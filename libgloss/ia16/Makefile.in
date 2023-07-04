@@ -658,11 +658,13 @@ install:
 	  fi; \
 	done
 	if [ -z "${MULTISUBDIR}" ]; then \
+	  set -e; $(mkinstalldirs) $(sort $(dir \
+	    ${INSTALL_DATA_FILES_NONMULTI:%=$(DESTDIR)${tooldir}/lib/%})); \
 	  set -e; for x in ${INSTALL_DATA_FILES_NONMULTI}; do\
 	    if [ -f $$x ]; then \
-	      ${INSTALL_DATA} -D $$x $(DESTDIR)${tooldir}/lib/$$x; \
+	      ${INSTALL_DATA} $$x $(DESTDIR)${tooldir}/lib/$$x; \
 	    else \
-	      ${INSTALL_DATA} -D $(srcdir)/$$x $(DESTDIR)${tooldir}/lib/$$x; \
+	      ${INSTALL_DATA} $(srcdir)/$$x $(DESTDIR)${tooldir}/lib/$$x; \
 	    fi; \
 	  done; \
 	  set -e; for x in ${INSTALL_PROGRAM_FILES}; do\
