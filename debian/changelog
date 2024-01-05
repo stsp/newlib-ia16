@@ -1,0 +1,5 @@
+libnewlib-ia16-elf (2.4.0-20230704.18-stage1gcc6.3.0-20231009.22-binutils2.39-20230531.20-ppa231012172~focal) focal; urgency=medium
+
+  * Release.
+
+ -- user <user@localhost.localdomain>  Thu, 12 Oct 2023 17:26:46 +0000
