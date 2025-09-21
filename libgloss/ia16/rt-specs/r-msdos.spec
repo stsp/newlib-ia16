@@ -106,22 +106,24 @@ bogus output}\
   :\
     %{!mno-newlib-autofloat-stdio:-lastdio} -lfstdio\
  } \
-%{mdosx:\
-    %{mdosx32:-ldx32} \
-    -l:dx-%(cmodel_lc_a);\
-  :\
-    %{mmsdos-handle-v1:-ldosv1} \
-    %{mhandle-non-i286:\
-        %{march=i80286|march=i286:-lck186};\
-      mhandle-non-i186:\
-        %{march=any|march=i8086|march=i8088:;march=*:-lck086}} \
-    %{mtsr:\
-        %{nostartfiles:%Tdtr-m%(cmodel_l_ld);:%Tdtr-m%(cmodel_sl_ld)};\
-      nostartfiles:\
-        %Tdos-m%(cmodel_l_ld);\
-      :\
-        %Tdos-m%(cmodel_sl_ld)\
-     }\
+%{!T*:\
+  %{mdosx:\
+      %{mdosx32:-ldx32} \
+      -l:dx-%(cmodel_lc_a);\
+    :\
+      %{mmsdos-handle-v1:-ldosv1} \
+      %{mhandle-non-i286:\
+	  %{march=i80286|march=i286:-lck186};\
+	mhandle-non-i186:\
+	  %{march=any|march=i8086|march=i8088:;march=*:-lck086}} \
+      %{mtsr:\
+	  %{nostartfiles:%Tdtr-m%(cmodel_l_ld);:%Tdtr-m%(cmodel_sl_ld)};\
+	nostartfiles:\
+	  %Tdos-m%(cmodel_l_ld);\
+	:\
+	  %Tdos-m%(cmodel_sl_ld)\
+       }\
+   }
  }
 
 *post_link:
