@@ -123,7 +123,7 @@ bogus output}\
 	:\
 	  %Tdos-m%(cmodel_sl_ld)\
        }\
-   }
+   }\
  }
 
 *post_link:
