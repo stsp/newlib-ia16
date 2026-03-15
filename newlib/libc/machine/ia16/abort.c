@@ -67,11 +67,17 @@ __ia16_abort_impl (abort_regs_t regs)
   static const char msg1[] = NL "abort () called" NL
 				"reg (a-d bp si di cs es ds ss sp f):" NL,
 		    msg2[] = NL "stk:" NL;
+  int stk_len = 192;
+  int stk_rem = (0x10000 - regs.sp) / sizeof(short);
 
   write (2, msg1, sizeof (msg1) - 1);
   dump_mem ((const unsigned *) &regs, sizeof (regs) / sizeof (unsigned));
   write (2, msg2, sizeof (msg2) - 1);
-  dump_mem ((const unsigned *) MK_FP (regs.ss, regs.sp), 192);
+  /* avoid faulting when dumping stack */
+  if (stk_rem < stk_len)
+    stk_len = stk_rem & ~0xf;
+  dump_mem ((const unsigned *) MK_FP (regs.ss, regs.sp), stk_len);
+  write(2, "\r\n\r\n", 4);
 
 #ifndef __IA16_FEATURE_PROTECTED_MODE
   /* _exit (.) may ultimately make the system weird out and wipe the
