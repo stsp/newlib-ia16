@@ -27,7 +27,19 @@ __ia16_near_data_segment:
 	.hword	0
 
 #ifdef __IA16_FEATURE_DOSX
-.Lctor_near_data_segment:
+	/*
+	 * Other constructors may need __ia16_near_data_segment to be set up
+	 * before they run --- e.g. the int $0x1c handler in dos-timesr.S reads
+	 * it --- and the order of constructors with the same priority is not
+	 * fixed.  So allow them to call this routine directly; it does nothing
+	 * if the segment has already been filled in.
+	 *
+	 * Clobbers %ax and %bx.
+	 */
+	.global	__ia16_init_near_data_segment
+__ia16_init_near_data_segment:
+	cmpw	$0,	%cs:__ia16_near_data_segment
+	jnz	8f
 	/* Patch the text segment the hard way...  */
 	movw	$0x000a, %ax
 	movw	%cs,	%bx
@@ -46,7 +58,7 @@ __ia16_near_data_segment:
 	.section .ctors.65535
 
 	.balign	2
-	.hword	.Lctor_near_data_segment
+	.hword	__ia16_init_near_data_segment
 #endif
 
 	.section .data, "aw"
