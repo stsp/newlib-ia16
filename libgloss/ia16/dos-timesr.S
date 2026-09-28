@@ -49,6 +49,13 @@
 	popw	%es
 	RET_ (0)
 #else
+	/*
+	 * Our int $0x1c handler loads %ds from __ia16_near_data_segment, so
+	 * make sure that is set up before we hook the interrupt; otherwise a
+	 * timer tick that arrives in between will run the handler with a
+	 * null %ds.
+	 */
+	call	__ia16_init_near_data_segment
 	pushw	%es
 	pushw	%di
 	pushw	%ds
@@ -115,7 +122,8 @@
 	int	$0x31
 	cmp	$.Lour_int_0x1c, %dx
 	jnz	0f
-	movw	%ds,	%dx
+	/* Our handler lives in the text segment in DPMI mode.  */
+	movw	%cs,	%dx
 	cmpw	%dx,	%cx
 	jnz	0f
 	movw	.Lp_orig_int_0x1c, %dx
